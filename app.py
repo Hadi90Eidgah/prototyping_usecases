@@ -179,6 +179,10 @@ def main():
     if summary_df.empty:
         st.error("No data available. Please check your database files.")
         return
+        # --- Normalize string columns for consistent filtering ---
+        for col in ['disease', 'treatment_name', 'grant_id']:
+            if col in summary_df.columns:
+                summary_df[col] = summary_df[col].astype(str).str.strip()
 
     st.markdown("## Select the Citation Network")
 
