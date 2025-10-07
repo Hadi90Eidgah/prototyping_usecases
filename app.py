@@ -96,87 +96,163 @@ def build_summary_from_nodes(nodes_df):
         return pd.DataFrame()
 
 
-# --- Visualization Utilities ---
+# --- Visualization Utilities (Structured Layout) ---
 def get_node_positions(network_nodes, network_id):
-    """Generate random 2D positions for each node based on node type."""
+    """Assign structured positions based on node type and publication year."""
     node_positions = {}
     np.random.seed(42 + int(str(network_id).encode().hex(), 16) % 1000)
 
-    for _, node in network_nodes.iterrows():
-        x = np.random.uniform(-5, 5)
-        y = np.random.uniform(-3, 3)
+    # --- 1️⃣ Grant node (left side) ---
+    grants = network_nodes[network_nodes["node_type"] == NODE_TYPE_GRANT]
+    if not grants.empty:
+        grant = grants.iloc[0]
+        node_positions[grant["node_id"]] = (
+            NODE_POSITIONS_X["grant"],
+            NODE_POSITIONS_Y["grant"]
+        )
+
+    # --- 2️⃣ Grant-funded publications ---
+    funded_pubs = network_nodes[
+        network_nodes["node_type"].isin(["publication", "grant_funded_pub"])
+    ]
+    for i, (_, node) in enumerate(funded_pubs.iterrows()):
+        x = NODE_POSITIONS_X["grant_funded_pub"]
+        y = NODE_POSITIONS_Y["grant_funded_pub"][i % len(NODE_POSITIONS_Y["grant_funded_pub"])]
         node_positions[node["node_id"]] = (x, y)
+
+    # --- 3️⃣ Ecosystem publications ---
+    ecosystem_pubs = network_nodes[
+        network_nodes["node_type"].isin(["ecosystem_pub"])
+    ]
+    for i, (_, node) in enumerate(ecosystem_pubs.iterrows()):
+        x = NODE_POSITIONS_X["ecosystem_pub_cluster"][i % len(NODE_POSITIONS_X["ecosystem_pub_cluster"])]
+        y = NODE_POSITIONS_Y["ecosystem_pub_cluster"][i % len(NODE_POSITIONS_Y["ecosystem_pub_cluster"])]
+        node_positions[node["node_id"]] = (x, y)
+
+    # --- 4️⃣ Treatment pathway publications ---
+    treat_pubs = network_nodes[
+        network_nodes["node_type"].isin(["treatment_pathway_pub"])
+    ]
+    for i, (_, node) in enumerate(treat_pubs.iterrows()):
+        x = NODE_POSITIONS_X["treatment_pathway_pub"]
+        y = NODE_POSITIONS_Y["treatment_pathway_pub"][i % len(NODE_POSITIONS_Y["treatment_pathway_pub"])]
+        node_positions[node["node_id"]] = (x, y)
+
+    # --- 5️⃣ Treatment node (right side) ---
+    treatments = network_nodes[network_nodes["node_type"] == NODE_TYPE_TREATMENT]
+    if not treatments.empty:
+        treat = treatments.iloc[0]
+        node_positions[treat["node_id"]] = (
+            NODE_POSITIONS_X["treatment"],
+            NODE_POSITIONS_Y["treatment"]
+        )
+
     return node_positions
 
 
-def create_edge_trace(edges, node_positions):
-    """Create Plotly traces for edges."""
+def create_edge_trace(edges, node_positions, edge_type, name, showlegend):
+    """Create a Plotly scatter trace for edges."""
     edge_x, edge_y = [], []
     for _, edge in edges.iterrows():
-        src, tgt = edge["source_id"], edge["target_id"]
-        if src in node_positions and tgt in node_positions:
-            x0, y0 = node_positions[src]
-            x1, y1 = node_positions[tgt]
-            edge_x += [x0, x1, None]
-            edge_y += [y0, y1, None]
+        if edge["source_id"] in node_positions and edge["target_id"] in node_positions:
+            x0, y0 = node_positions[edge["source_id"]]
+            x1, y1 = node_positions[edge["target_id"]]
+            edge_x.extend([x0, x1, None])
+            edge_y.extend([y0, y1, None])
+
+    if not edge_x:
+        return None
 
     return go.Scatter(
         x=edge_x,
         y=edge_y,
-        line=dict(width=1, color="rgba(160,174,192,0.5)"),
+        line=dict(width=EDGE_WIDTHS.get(edge_type, 1.5), color=EDGE_COLORS.get(edge_type, "gray")),
         hoverinfo="none",
-        mode="lines"
+        mode="lines",
+        name=name,
+        showlegend=showlegend
     )
 
 
-def create_node_trace(nodes, node_positions):
-    """Create Plotly traces for nodes."""
-    node_x, node_y = [], []
-    texts = []
+def create_node_trace(nodes, node_positions, node_type, name, showlegend):
+    """Create a Plotly scatter trace for nodes."""
+    node_x, node_y, hover_texts = [], [], []
+
     for _, node in nodes.iterrows():
         node_id = node["node_id"]
-        if node_id in node_positions:
-            x, y = node_positions[node_id]
-            node_x.append(x)
-            node_y.append(y)
-            texts.append(node.get("title", node_id))
+        if node_id not in node_positions:
+            continue
+        x, y = node_positions[node_id]
+        node_x.append(x)
+        node_y.append(y)
+        hover_texts.append(node.get("title", node_id))
 
     return go.Scatter(
         x=node_x,
         y=node_y,
         mode="markers",
         hoverinfo="text",
-        text=texts,
-        marker=dict(size=10, color="#4299e1", line=dict(width=1, color="#e2e8f0"))
+        text=hover_texts,
+        marker=dict(
+            size=NODE_SIZES.get(node_type, 10),
+            color=NODE_COLORS.get(node_type, "#718096"),
+            line=dict(width=2, color="#e2e8f0")
+        ),
+        name=name,
+        showlegend=showlegend
     )
 
 
 def create_network_visualization(nodes_df, edges_df, network_id, grant_id=None, treatment_name=None):
-    """Build a minimal 2D network visualization using Plotly."""
-    # Filter network subset
+    """Generate the structured left→right network visualization."""
     network_nodes = nodes_df[nodes_df["network_id"] == network_id]
-    network_edges = edges_df  # assume already single-network dataset
+    network_edges = edges_df
 
     if network_nodes.empty or network_edges.empty:
-        raise ValueError("No nodes or edges for this network.")
+        raise ValueError("No nodes or edges found for this network.")
 
     node_positions = get_node_positions(network_nodes, network_id)
-    edge_trace = create_edge_trace(network_edges, node_positions)
-    node_trace = create_node_trace(network_nodes, node_positions)
 
-    fig = go.Figure(data=[edge_trace, node_trace])
+    # Edge layers
+    edge_traces = [
+        create_edge_trace(network_edges, node_positions, EDGE_TYPE_FUNDED_BY, "Grant Funding", True),
+        create_edge_trace(network_edges, node_positions, EDGE_TYPE_LEADS_TO_TREATMENT, "Research Impact Pathway", True),
+        create_edge_trace(network_edges, node_positions, EDGE_TYPE_ENABLES_TREATMENT, "Treatment Enablement", True),
+    ]
+
+    # Node layers
+    node_traces = [
+        create_node_trace(network_nodes[network_nodes["node_type"] == NODE_TYPE_GRANT], node_positions, NODE_TYPE_GRANT, "Grant", True),
+        create_node_trace(network_nodes[network_nodes["node_type"] == NODE_TYPE_PUBLICATION], node_positions, "grant_funded_pub", "Grant-Funded Papers", True),
+        create_node_trace(network_nodes[network_nodes["node_type"] == NODE_TYPE_TREATMENT], node_positions, NODE_TYPE_TREATMENT, "Approved Treatment", True),
+    ]
+
+    fig = go.Figure(data=[t for t in edge_traces + node_traces if t is not None])
     fig.update_layout(
         title=f"Research Impact Network — {grant_id or ''} → {treatment_name or ''}",
-        showlegend=False,
+        showlegend=True,
         hovermode="closest",
-        margin=dict(b=20, l=20, r=20, t=40),
-        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-        paper_bgcolor="rgba(14,17,23,1)",
+        margin=dict(b=40, l=40, r=40, t=70),
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-6, 7]),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, range=[-3, 3]),
+        height=600,
         plot_bgcolor="rgba(14,17,23,1)",
-        font=dict(color="#e2e8f0")
+        paper_bgcolor="rgba(14,17,23,1)",
+        font=dict(color="#e2e8f0"),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.3,
+            xanchor="center",
+            x=0.5,
+            bgcolor="rgba(45,55,72,0.9)",
+            bordercolor="rgba(74,85,104,0.5)",
+            borderwidth=1,
+            font=dict(size=11, color="#e2e8f0")
+        )
     )
     return fig
+
 
 
 # --- Data Loading ---
