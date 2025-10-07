@@ -124,6 +124,7 @@ def load_database():
             summary_df = build_summary_from_nodes(nodes_df)
 
             st.success("✅ Loaded nodes and edges from CSV files.")
+            st.write("📊 Summary preview:", summary_df.head())
             return nodes_df, edges_df, summary_df
 
         # --- Legacy database loading path ---
