@@ -164,7 +164,11 @@ def load_database():
 def main():
     """Main application function"""
     st.markdown('<h1 class="main-header">Research Impact Network Analysis</h1>', unsafe_allow_html=True)
-    st.markdown('<p style="text-align: center; font-size: 1.1rem; color: #a0aec0; margin-bottom: 3rem; font-weight: 300;">Mapping Research Pathways from Grant Funding to Breakthrough Treatments</p>', unsafe_allow_html=True)
+    st.markdown(
+        '<p style="text-align: center; font-size: 1.1rem; color: #a0aec0; margin-bottom: 3rem; font-weight: 300;">'
+        'Mapping Research Pathways from Grant Funding to Breakthrough Treatments</p>',
+        unsafe_allow_html=True
+    )
 
     # Load data
     nodes_df, edges_df, summary_df = load_database()
@@ -179,16 +183,18 @@ def main():
     if summary_df.empty:
         st.error("No data available. Please check your database files.")
         return
-# --- Normalize string columns for consistent filtering ---
-for col in ['disease', 'treatment_name', 'grant_id']:
-    if col in summary_df.columns:
-        summary_df[col] = summary_df[col].astype(str).str.strip()
+
+    # --- Normalize string columns for consistent filtering ---
+    for col in ['disease', 'treatment_name', 'grant_id']:
+        if col in summary_df.columns:
+            summary_df[col] = summary_df[col].astype(str).str.strip()
 
     st.markdown("## Select the Citation Network")
 
     # The rest of the UI logic remains the same as your existing app:
     # dropdowns, cards, visualization, citation explorer, etc.
     # (You can keep all of it below this point unchanged)
+
 
 if __name__ == "__main__":
     main()
