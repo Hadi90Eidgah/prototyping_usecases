@@ -95,6 +95,18 @@ def load_database():
             # Load node data and show columns
             nodes_df = pd.read_csv(NODES_CSV_PATH)
             st.write("🧩 Node columns detected in CSV:", list(nodes_df.columns))
+            # --- Add missing columns for compatibility ---
+            if 'node_type' not in nodes_df.columns:
+                nodes_df['node_type'] = 'publication'  # default assumption
+                # Assign first row as a grant and last row as a treatment (just to connect network)
+                if len(nodes_df) > 0:
+                    nodes_df.loc[nodes_df.index[0], 'node_type'] = 'grant'
+                    nodes_df.loc[nodes_df.index[-1], 'node_type'] = 'treatment'
+
+            # Add placeholder metadata columns
+            for col in ['disease', 'treatment_name', 'grant_id', 'approval_year', 'funding_amount']:
+                if col not in nodes_df.columns:
+                    nodes_df[col] = np.nan
 
             # Load edge data and show columns before and after rename
             edges_df = pd.read_csv(EDGES_CSV_PATH)
