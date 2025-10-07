@@ -97,6 +97,7 @@ def load_database():
             st.write("Edges columns:", list(edges_df.columns))
 
             summary_df = build_summary_from_nodes(nodes_df)
+            st.write("✅ Edge DataFrame columns after rename:", list(edges_df.columns))
             return nodes_df, edges_df, summary_df
 
         elif os.path.exists(DATABASE_PATH):
