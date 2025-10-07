@@ -52,17 +52,21 @@ load_css('style.css')
 def load_database():
     """Load data from database or CSV files"""
     try:
-                # --- New logic: load directly from CSVs if they exist ---
+        # --- New logic: load directly from CSVs if they exist ---
         if os.path.exists(NODES_CSV_PATH) and os.path.exists(EDGES_CSV_PATH):
             nodes_df = pd.read_csv(NODES_CSV_PATH)
             edges_df = pd.read_csv(EDGES_CSV_PATH)
-            st.success("✅ Loaded nodes and edges from CSV files.")
+
+            # --- Normalize column names to match the app's expected format ---
             edges_df = edges_df.rename(columns={
-            'source': 'source_id',
-            'target': 'target_id',
-            'relation': 'edge_type'
-                            })
+                'source': 'source_id',
+                'target': 'target_id',
+                'relation': 'edge_type'
+            })
+
+            st.success("✅ Loaded nodes and edges from CSV files.")
             st.write("Edges columns:", list(edges_df.columns))
+
             summary_df = pd.DataFrame()  # placeholder for now
             return nodes_df, edges_df, summary_df
 
@@ -73,11 +77,13 @@ def load_database():
             summary_df = pd.read_sql('SELECT * FROM network_summary', conn)
             conn.close()
             return nodes_df, edges_df, summary_df
+
         else:
             nodes_df = pd.read_csv(NODES_CSV_PATH)
             edges_df = pd.read_csv(EDGES_CSV_PATH)
             summary_df = pd.read_csv(SUMMARY_CSV_PATH)
             return nodes_df, edges_df, summary_df
+
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return create_sample_data()
