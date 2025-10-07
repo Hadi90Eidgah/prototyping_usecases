@@ -1,0 +1,292 @@
+/* Global dark theme */
+.stApp {
+    background-color: #0e1117;
+    color: #C2B8B8;
+}
+
+/* Main header styling */
+.main-header { 
+    font-size: 2.5rem; 
+    color: #ffffff; 
+    text-align: center; 
+    margin-bottom: 2rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+}
+
+/* Network Selection Cards */
+.selection-card { 
+    background: linear-gradient(135deg, #1e2329 0%, #2d3748 100%);
+    padding: 1.2rem; 
+    border-radius: 8px; 
+    border: 1px solid #4a5568; 
+    margin: 0.5rem 0; 
+    text-align: left;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: all 0.3s ease;
+    max-width: 300px;
+}
+
+.selection-card:hover {
+    border-color: #63b3ed;
+    box-shadow: 0 6px 20px rgba(99, 179, 237, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Network card styling */
+.grant-card { 
+    border-left: 3px solid #4299e1; 
+}
+
+/* Scientific typography */
+.network-title {
+    font-size: 1.4rem;
+    font-weight: 500;
+    color: #e2e8f0;
+    margin-bottom: 0.5rem;
+}
+
+.treatment-name {
+    font-size: 1.1rem;
+    color: #90cdf4;
+    font-weight: 400;
+    margin-bottom: 1rem;
+}
+
+.network-details {
+    font-size: 0.9rem;
+    color: #cbd5e0;
+    line-height: 1.6;
+}
+
+/* Enhanced Metrics styling with better contrast */
+.metric-container {
+    background: rgba(45, 55, 72, 0.9);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid #63b3ed;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Streamlit metrics styling - THESE ARE THE IMPORTANT ONES FOR YOUR CHANGES */
+div[data-testid="metric-container"] {
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%) !important;
+    border: 1px solid #63b3ed !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+    box-shadow: 0 4px 12px rgba(99, 179, 237, 0.2) !important;
+}
+
+/* Metric value styling - THE BIG NUMBERS */
+div[data-testid="metric-container"] > div > div:first-child {
+    color: #c6f6d5 !important; /* lighter mint for better readability */
+    font-weight: 600 !important;
+    font-size: 2rem !important;
+}
+
+/* Metric label styling - "Publications", "Research Duration" */
+div[data-testid="metric-container"] > div > div:nth-child(2) {
+    color: #e2e8f0 !important; /* soft white text for clear contrast */
+    font-weight: 500 !important;
+    font-size: 0.9rem !important;
+}
+
+/* Metric delta styling - "Research papers", "Approved 2024" */
+div[data-testid="metric-container"] > div > div:last-child {
+    color: #81e6d9 !important; /* teal accent for subtle contrast */
+    font-weight: 400 !important;
+    font-size: 0.8rem !important;
+}
+
+/* Search section styling */
+.search-section {
+    background: rgba(30, 35, 41, 0.8);
+    padding: 1rem;
+    border-radius: 8px;
+    border: 1px solid #4a5568;
+    margin-bottom: 1.5rem;
+}
+
+/* Compact search controls */
+.search-controls {
+    max-width: 600px;
+    margin: 0 auto 1rem auto;
+}
+
+/* Button styling */
+.stButton > button {
+    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+    background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+    box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+}
+
+/* Sidebar styling */
+.css-1d391kg {
+    background-color: #1a202c;
+}
+
+/* Remove default streamlit styling */
+.css-1v0mbdj {
+    border: none;
+}
+
+/* Network info styling */
+.network-info { 
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    padding: 1.5rem; 
+    border-radius: 0.8rem; 
+    border-radius: 10px; 
+    border: 1px solid #4a5568; 
+    margin: 1rem 0; 
+}
+
+/* Complete Selectbox styling with text colors */
+.stSelectbox > div > div {
+    background-color: #2d3748 !important;
+    border: 1px solid #4a5568 !important;
+    border-radius: 6px !important;
+    color: #ffffff !important;  /* Selected value text color */
+}
+
+/* Dropdown input text */
+.stSelectbox div[data-baseweb="select"] > div {
+    color: #ffffff !important;  /* Input text color */
+}
+
+/* Dropdown arrow */
+.stSelectbox div[data-baseweb="select"] svg {
+    fill: #ffffff !important;  /* Arrow color */
+}
+
+/* Dropdown menu background */
+.stSelectbox div[role="listbox"] {
+    background-color: #2d3748 !important;
+    border: 1px solid #4a5568 !important;
+    border-radius: 6px !important;
+}
+
+/* Dropdown menu options */
+.stSelectbox div[role="listbox"] div {
+    color: #ffffff !important;  /* Dropdown options text color */
+    background-color: #2d3748 !important;
+    padding: 8px 12px !important;
+}
+
+/* Dropdown menu options on hover */
+.stSelectbox div[role="listbox"] div:hover {
+    color: #ffffff !important;  /* Hover text color */
+    background-color: #4299e1 !important;  /* Hover background color */
+}
+.stSelectbox label {
+    color: #ff6b6b !important;  /* Red */
+    font-weight: bold !important;
+}
+
+/* Info box styling */
+.stInfo {
+    background-color: rgba(66, 153, 225, 0.1);
+    border: 1px solid #4299e1;
+    border-radius: 8px;
+}
+
+/* Success box styling */
+.stSuccess {
+    background-color: rgba(72, 187, 120, 0.1);
+    border: 1px solid #48bb78;
+    border-radius: 8px;
+}
+
+/* Refresh button styling */
+.refresh-button {
+    display: flex;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+/* Comprehensive button styling to override all Streamlit button defaults */
+.stButton > button {
+    background-color: #2d3748 !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #4a5568 !important;
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    transition: all 0.3s ease !important;
+}
+
+.stButton > button:hover {
+    background-color: #4299e1 !important;
+    border-color: #63b3ed !important;
+    color: #ffffff !important;
+}
+
+.stButton > button:focus {
+    background-color: #4299e1 !important;
+    border-color: #63b3ed !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.3) !important;
+}
+
+/* Target specific button types */
+button[data-testid="baseButton-primary"],
+button[data-testid="baseButton-secondary"] {
+    background-color: #2d3748 !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #4a5568 !important;
+}
+
+button[data-testid="baseButton-primary"]:hover,
+button[data-testid="baseButton-secondary"]:hover {
+    background-color: #4299e1 !important;
+    color: #ffffff !important;
+}
+
+/* Strong override for metric text colors */
+div[data-testid="stMetricValue"] {
+    color: #E1DAD6 !important; /* bright mint for contrast */
+}
+
+div[data-testid="stMetricLabel"] {
+    color: #fafcff !important; /* near-white labels */
+}
+
+div[data-testid="stMetricDelta"] {
+    color: #9aa09f !important; /* teal accent for delta text */
+}
+/* Fix metric label (e.g., "Publications", "Research Duration") color */
+div[data-testid="stMetricLabel"] {
+    color: #e2e8f0 !important;  /* light gray-white for strong contrast */
+    font-weight: 500 !important;
+    font-size: 1rem !important;
+    opacity: 1 !important; /* Streamlit sometimes dims these labels */
+}
+
+/* ==========================================
+   💡 FINAL FIX: Metric label color override
+   (Covers all Streamlit versions and nesting)
+   ========================================== */
+
+/* Primary Streamlit metric label */
+[data-testid="stMetric"] label,
+[data-testid="stMetric"] p,
+[data-testid="stMetric"] span,
+[data-testid="stMetricLabel"],
+div[data-testid="stMetric"] > div > div > label {
+    color: #e2e8f0 !important;   /* high-contrast light gray */
+    font-weight: 500 !important;
+    font-size: 0.95rem !important;
+    opacity: 1 !important;
+}
+
+/* Optional: Slightly brighten metric section titles */
+[data-testid="stMetric"] {
+    filter: brightness(1.1) !important;
+}
