@@ -96,7 +96,7 @@ def load_database():
             st.success("✅ Loaded nodes and edges from CSV files.")
             st.write("Edges columns:", list(edges_df.columns))
 
-            summary_df = pd.DataFrame()  # placeholder for now
+            summary_df = build_summary_from_nodes(nodes_df)
             return nodes_df, edges_df, summary_df
 
         elif os.path.exists(DATABASE_PATH):
