@@ -1,4 +1,4 @@
-# Research Impact Dashboard (Revised for new CSV schema)
+# Research Impact Dashboard (Adapted for new CSV structure)
 
 import streamlit as st
 import pandas as pd
@@ -45,22 +45,25 @@ load_css('style.css')
 def build_summary_from_nodes(nodes_df):
     """Generate a summary DataFrame from nodes when no summary CSV exists"""
     try:
+        # Ensure required columns exist
         if 'node_type' not in nodes_df.columns:
-            st.error("❌ Missing 'node_type' column in nodes CSV.")
-            return pd.DataFrame()
+            st.warning("⚠️ 'node_type' missing in nodes — assigning defaults.")
+            nodes_df['node_type'] = 'publication'
+            if len(nodes_df) > 0:
+                nodes_df.loc[nodes_df.index[0], 'node_type'] = 'grant'
+                nodes_df.loc[nodes_df.index[-1], 'node_type'] = 'treatment'
+
+        for col in ['network_id', 'disease', 'treatment_name', 'grant_id',
+                    'funding_amount', 'year', 'approval_year']:
+            if col not in nodes_df.columns:
+                nodes_df[col] = np.nan
 
         grants = nodes_df[nodes_df['node_type'] == 'grant'].copy()
+        summary_df = grants[['network_id', 'disease', 'treatment_name', 'grant_id',
+                             'funding_amount', 'year', 'approval_year']].rename(
+            columns={'year': 'grant_year'}
+        )
 
-        # Ensure expected columns exist
-        required_cols = ['network_id', 'disease', 'treatment_name', 'grant_id',
-                         'funding_amount', 'year', 'approval_year']
-        for col in required_cols:
-            if col not in grants.columns:
-                grants[col] = np.nan
-
-        summary_df = grants[required_cols].rename(columns={'year': 'grant_year'})
-
-        # Count publications per network
         if 'node_id' in nodes_df.columns:
             pub_counts = (
                 nodes_df[nodes_df['node_type'] == 'publication']
@@ -72,12 +75,12 @@ def build_summary_from_nodes(nodes_df):
         else:
             summary_df['total_publications'] = 0
 
-        # Compute research duration
         summary_df['research_duration'] = (
             summary_df['approval_year'] - summary_df['grant_year']
         )
 
         summary_df = summary_df.fillna(0)
+
         # --- Add readable names for single-network datasets ---
         if 'disease' in summary_df.columns:
             summary_df.loc[:, 'disease'] = 'General Research Network'
@@ -100,23 +103,19 @@ def load_database():
     try:
         # --- New logic: load directly from CSVs if they exist ---
         if os.path.exists(NODES_CSV_PATH) and os.path.exists(EDGES_CSV_PATH):
-            # Load node data and show columns
             nodes_df = pd.read_csv(NODES_CSV_PATH)
             st.write("🧩 Node columns detected in CSV:", list(nodes_df.columns))
-            # --- Add missing columns for compatibility ---
+
+            # Ensure essential columns exist
             if 'node_type' not in nodes_df.columns:
-                nodes_df['node_type'] = 'publication'  # default assumption
-                # Assign first row as a grant and last row as a treatment (just to connect network)
+                nodes_df['node_type'] = 'publication'
                 if len(nodes_df) > 0:
                     nodes_df.loc[nodes_df.index[0], 'node_type'] = 'grant'
                     nodes_df.loc[nodes_df.index[-1], 'node_type'] = 'treatment'
-
-            # Add placeholder metadata columns
             for col in ['disease', 'treatment_name', 'grant_id', 'approval_year', 'funding_amount']:
                 if col not in nodes_df.columns:
                     nodes_df[col] = np.nan
 
-            # Load edge data and show columns before and after rename
             edges_df = pd.read_csv(EDGES_CSV_PATH)
             st.write("🧩 Edge columns before rename:", list(edges_df.columns))
 
@@ -128,11 +127,10 @@ def load_database():
             })
             st.write("✅ Edge columns after rename:", list(edges_df.columns))
 
-            # --- Build summary dynamically from node data ---
             summary_df = build_summary_from_nodes(nodes_df)
-
             st.success("✅ Loaded nodes and edges from CSV files.")
             st.write("📊 Summary preview:", summary_df.head())
+
             return nodes_df, edges_df, summary_df
 
         # --- Legacy database loading path ---
@@ -156,10 +154,6 @@ def load_database():
         return create_sample_data()
 
 
-# --- Visualization Functions (unchanged) ---
-# [keep all your existing functions: get_node_positions(), create_edge_trace(), 
-#  create_node_trace(), create_network_visualization(), display_network_metrics()]
-
 # --- Main App ---
 def main():
     """Main application function"""
@@ -173,6 +167,7 @@ def main():
     # Load data
     nodes_df, edges_df, summary_df = load_database()
 
+    # Sidebar metrics
     st.sidebar.markdown("### Database Statistics")
     st.sidebar.write(f"Total connections: {len(edges_df)}")
     if 'edge_type' in edges_df.columns:
@@ -184,36 +179,34 @@ def main():
         st.error("No data available. Please check your database files.")
         return
 
-    # --- Normalize string columns for consistent filtering ---
+    # Normalize strings for consistent filtering
     for col in ['disease', 'treatment_name', 'grant_id']:
         if col in summary_df.columns:
             summary_df[col] = summary_df[col].astype(str).str.strip()
 
     st.markdown("## Select the Citation Network")
-# --- Simple selector for single-network datasets ---
-search_type = "Disease"
-st.markdown("### Available Research Networks")
 
-# Use the first row of summary_df since we only have one network
-selected_network = summary_df.iloc[0]["network_id"]
-selected_summary = summary_df.iloc[0]
+    # --- Simple selector for single-network datasets ---
+    st.markdown("### Available Research Networks")
 
-# Display a simple info card
-st.markdown(f"""
-<div class="selection-card grant-card">
-    <div class="network-title">{selected_summary['disease']}</div>
-    <div class="treatment-name">{selected_summary['treatment_name']}</div>
-    <div class="network-details">Grant ID: {selected_summary['grant_id']}<br>
-    Publications: {selected_summary['total_publications']}</div>
-</div>
-""", unsafe_allow_html=True)
+    selected_network = summary_df.iloc[0]["network_id"]
+    selected_summary = summary_df.iloc[0]
 
-if st.button("Analyze Citation Network", use_container_width=True):
-    st.session_state.selected_network = selected_network
+    st.markdown(f"""
+    <div class="selection-card grant-card">
+        <div class="network-title">{selected_summary['disease']}</div>
+        <div class="treatment-name">{selected_summary['treatment_name']}</div>
+        <div class="network-details">
+            Grant ID: {selected_summary['grant_id']}<br>
+            Publications: {selected_summary['total_publications']}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
-    # The rest of the UI logic remains the same as your existing app:
-    # dropdowns, cards, visualization, citation explorer, etc.
-    # (You can keep all of it below this point unchanged)
+    if st.button("Analyze Citation Network", use_container_width=True):
+        st.session_state.selected_network = selected_network
+        st.success(f"Selected network: {selected_summary['disease']} → {selected_summary['treatment_name']}")
+        # (Here you can later re-enable create_network_visualization() once data structure stabilizes)
 
 
 if __name__ == "__main__":
