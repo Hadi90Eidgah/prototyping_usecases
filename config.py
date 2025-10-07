@@ -1,4 +1,4 @@
-# Configuration for the Research Impact Dashboard (Fine-tuned Layout)
+# Configuration for the Research Impact Dashboard (Structured Layout)
 
 # --- Data Loading ---
 DATABASE_PATH = 'streamlit_research_database.db'
@@ -11,6 +11,7 @@ CACHE_TTL = 3600  # Cache data for 1 hour
 NODE_TYPE_GRANT = 'grant'
 NODE_TYPE_TREATMENT = 'treatment'
 NODE_TYPE_PUBLICATION = 'publication'
+
 EDGE_TYPE_FUNDED_BY = 'funded_by'
 EDGE_TYPE_LEADS_TO_TREATMENT = 'leads_to_treatment'
 EDGE_TYPE_CITES = 'cites'
@@ -38,30 +39,31 @@ NODE_SIZES = {
 
 # --- Edge Colors ---
 EDGE_COLORS = {
-    'funded_by': 'rgba(66, 153, 225, 0.7)',           # Subtle blue-gray
-    'leads_to_treatment': 'rgba(160, 174, 192, 0.25)', # Bright blue (impact path)
-    'cites': 'rgba(160, 174, 192, 0.25)',            # Light gray for citations
-    'enables_treatment': 'rgba(56, 178, 172, 0.8)'   # Teal-green to treatment
+    'funded_by': 'rgba(66, 153, 225, 0.7)',           # Blue-gray (Grant → Paper)
+    'leads_to_treatment': 'rgba(160, 174, 192, 0.25)', # Gray (Paper → Treatment Paper)
+    'cites': 'rgba(160, 174, 192, 0.25)',             # Light gray (Citations)
+    'enables_treatment': 'rgba(56, 178, 172, 0.8)'    # Teal-green (Treatment Paper → Treatment)
 }
 
 # --- Edge Widths ---
 EDGE_WIDTHS = {
     'funded_by': 1.5,           # Grant → Funded Papers
-    'leads_to_treatment': 1.8,    # Pathway links remain strong
+    'leads_to_treatment': 1.8,  # Pathway links remain strong
     'cites': 0.8,               # Thin ecosystem edges
-    'enables_treatment': 1.5    # ⬅️ Same thickness as funded_by (was 2)
+    'enables_treatment': 1.5    # Same as funded_by
 }
 
 # --- Layout Positions (Distances) ---
-# Refined distances: bring treatment closer to pathway papers
+# This defines the "horizontal pipeline" look: Grant → Publications → Treatment
 NODE_POSITIONS_X = {
-    'grant': -4,                # Was -5 → moved slightly right
-    'grant_funded_pub': -2.5,
-    'ecosystem_pub_cluster': [-0.5, 0.5, 1.5, 0],
-    'treatment_pathway_pub': 3.5,
-    'treatment': 4.8            # ⬅️ Was 6 → now closer to orange pathway nodes
+    'grant': -4,                # Leftmost (funding origin)
+    'grant_funded_pub': -2.5,   # Funded publications
+    'ecosystem_pub_cluster': [-0.5, 0.5, 1.5, 0],  # Middle (ecosystem research)
+    'treatment_pathway_pub': 3.5, # Treatment pathway papers
+    'treatment': 4.8            # Rightmost (approved treatment)
 }
 
+# Vertical (Y) positions for stacked node distribution
 NODE_POSITIONS_Y = {
     'grant': 0,
     'grant_funded_pub': [2, 0.7, -0.6, -1.9],
