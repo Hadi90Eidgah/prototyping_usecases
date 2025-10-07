@@ -207,6 +207,23 @@ def main():
         st.session_state.selected_network = selected_network
         st.success(f"Selected network: {selected_summary['disease']} → {selected_summary['treatment_name']}")
         # (Here you can later re-enable create_network_visualization() once data structure stabilizes)
+    # --- Visualization Section ---
+    st.markdown("### 🕸️ Research Network Visualization")
+    with st.spinner("Creating network visualization..."):
+        try:
+            fig = create_network_visualization(
+                nodes_df,
+                edges_df,
+                selected_network,
+                grant_id=selected_summary["grant_id"],
+                treatment_name=selected_summary["treatment_name"]
+            )
+            if fig and fig.data:
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("No nodes or edges to visualize.")
+        except Exception as e:
+            st.error(f"Error generating visualization: {e}")
 
 
 if __name__ == "__main__":
