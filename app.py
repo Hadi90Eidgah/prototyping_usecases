@@ -85,7 +85,8 @@ def build_summary_from_nodes(nodes_df):
             summary_df.loc[:, 'treatment_name'] = 'Primary Treatment'
         if 'grant_id' in summary_df.columns:
             summary_df.loc[:, 'grant_id'] = 'AUTO-GEN-001'
-     return summary_df
+
+        return summary_df
 
     except Exception as e:
         st.error(f"Error building summary: {e}")
