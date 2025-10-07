@@ -54,11 +54,13 @@ def load_database():
     try:
         # --- New logic: load directly from CSVs if they exist ---
         if os.path.exists(NODES_CSV_PATH) and os.path.exists(EDGES_CSV_PATH):
+            # Load node data and show columns
             nodes_df = pd.read_csv(NODES_CSV_PATH)
-            st.write("🧩 Node columns:", list(nodes_df.columns))  # Debug node columns
+            st.write("🧩 Node columns detected in CSV:", list(nodes_df.columns))
 
+            # Load edge data and show columns before and after rename
             edges_df = pd.read_csv(EDGES_CSV_PATH)
-            st.write("🧩 Edge columns before rename:", list(edges_df.columns))  # Debug edges before rename
+            st.write("🧩 Edge columns before rename:", list(edges_df.columns))
 
             # --- Normalize edge columns to match the app's expected format ---
             edges_df = edges_df.rename(columns={
@@ -66,12 +68,15 @@ def load_database():
                 'target': 'target_id',
                 'relation': 'edge_type'
             })
-            st.write("✅ Edge columns after rename:", list(edges_df.columns))  # Confirm rename
+            st.write("✅ Edge columns after rename:", list(edges_df.columns))
 
+            # --- Build summary dynamically from node data ---
             summary_df = build_summary_from_nodes(nodes_df)
+
             st.success("✅ Loaded nodes and edges from CSV files.")
             return nodes_df, edges_df, summary_df
 
+        # --- Legacy database loading path ---
         elif os.path.exists(DATABASE_PATH):
             conn = sqlite3.connect(DATABASE_PATH)
             nodes_df = pd.read_sql('SELECT * FROM nodes', conn)
@@ -80,6 +85,7 @@ def load_database():
             conn.close()
             return nodes_df, edges_df, summary_df
 
+        # --- Fallback if other paths missing ---
         else:
             nodes_df = pd.read_csv(NODES_CSV_PATH)
             edges_df = pd.read_csv(EDGES_CSV_PATH)
