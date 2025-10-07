@@ -78,7 +78,14 @@ def build_summary_from_nodes(nodes_df):
         )
 
         summary_df = summary_df.fillna(0)
-        return summary_df
+        # --- Add readable names for single-network datasets ---
+        if 'disease' in summary_df.columns:
+            summary_df.loc[:, 'disease'] = 'General Research Network'
+        if 'treatment_name' in summary_df.columns:
+            summary_df.loc[:, 'treatment_name'] = 'Primary Treatment'
+        if 'grant_id' in summary_df.columns:
+            summary_df.loc[:, 'grant_id'] = 'AUTO-GEN-001'
+     return summary_df
 
     except Exception as e:
         st.error(f"Error building summary: {e}")
