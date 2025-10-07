@@ -57,6 +57,7 @@ def load_database():
             nodes_df = pd.read_csv(NODES_CSV_PATH)
             edges_df = pd.read_csv(EDGES_CSV_PATH)
             st.success("✅ Loaded nodes and edges from CSV files.")
+            st.write("Edges columns:", list(edges_df.columns))
             summary_df = pd.DataFrame()  # placeholder for now
             return nodes_df, edges_df, summary_df
 
