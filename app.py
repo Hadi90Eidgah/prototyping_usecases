@@ -49,56 +49,27 @@ load_css('style.css')
 
 # --- Data Loading ---
 @st.cache_data(ttl=CACHE_TTL)
-def build_summary_from_nodes(nodes_df):
-    """Generate a summary DataFrame from nodes when no summary CSV exists"""
-    try:
-        grants = nodes_df[nodes_df['node_type'] == 'grant'].copy()
-
-        summary_df = grants[['network_id', 'disease', 'treatment_name', 'grant_id',
-                             'funding_amount', 'year', 'approval_year']].rename(
-            columns={'year': 'grant_year'}
-        )
-
-        summary_df['total_publications'] = (
-            nodes_df[nodes_df['node_type'] == 'publication']
-            .groupby('network_id')['node_id']
-            .count()
-            .reindex(summary_df['network_id'])
-            .fillna(0)
-            .astype(int)
-            .values
-        )
-
-        summary_df['research_duration'] = (
-            summary_df['approval_year'] - summary_df['grant_year']
-        )
-
-        return summary_df
-    except Exception as e:
-        st.error(f"Error building summary: {e}")
-        return pd.DataFrame()
-
 def load_database():
     """Load data from database or CSV files"""
     try:
         # --- New logic: load directly from CSVs if they exist ---
         if os.path.exists(NODES_CSV_PATH) and os.path.exists(EDGES_CSV_PATH):
             nodes_df = pd.read_csv(NODES_CSV_PATH)
-            st.write("🧩 Node columns:", list(nodes_df.columns))
-            edges_df = pd.read_csv(EDGES_CSV_PATH)
+            st.write("🧩 Node columns:", list(nodes_df.columns))  # Debug node columns
 
-            # --- Normalize column names to match the app's expected format ---
+            edges_df = pd.read_csv(EDGES_CSV_PATH)
+            st.write("🧩 Edge columns before rename:", list(edges_df.columns))  # Debug edges before rename
+
+            # --- Normalize edge columns to match the app's expected format ---
             edges_df = edges_df.rename(columns={
                 'source': 'source_id',
                 'target': 'target_id',
                 'relation': 'edge_type'
             })
-
-            st.success("✅ Loaded nodes and edges from CSV files.")
-            st.write("Edges columns:", list(edges_df.columns))
+            st.write("✅ Edge columns after rename:", list(edges_df.columns))  # Confirm rename
 
             summary_df = build_summary_from_nodes(nodes_df)
-            st.write("✅ Edge DataFrame columns after rename:", list(edges_df.columns))
+            st.success("✅ Loaded nodes and edges from CSV files.")
             return nodes_df, edges_df, summary_df
 
         elif os.path.exists(DATABASE_PATH):
@@ -118,6 +89,7 @@ def load_database():
     except Exception as e:
         st.error(f"Error loading data: {e}")
         return create_sample_data()
+
 
 def create_sample_data():
     """Create fallback sample data"""
