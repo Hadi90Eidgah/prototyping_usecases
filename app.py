@@ -190,6 +190,26 @@ def main():
             summary_df[col] = summary_df[col].astype(str).str.strip()
 
     st.markdown("## Select the Citation Network")
+# --- Simple selector for single-network datasets ---
+search_type = "Disease"
+st.markdown("### Available Research Networks")
+
+# Use the first row of summary_df since we only have one network
+selected_network = summary_df.iloc[0]["network_id"]
+selected_summary = summary_df.iloc[0]
+
+# Display a simple info card
+st.markdown(f"""
+<div class="selection-card grant-card">
+    <div class="network-title">{selected_summary['disease']}</div>
+    <div class="treatment-name">{selected_summary['treatment_name']}</div>
+    <div class="network-details">Grant ID: {selected_summary['grant_id']}<br>
+    Publications: {selected_summary['total_publications']}</div>
+</div>
+""", unsafe_allow_html=True)
+
+if st.button("Analyze Citation Network", use_container_width=True):
+    st.session_state.selected_network = selected_network
 
     # The rest of the UI logic remains the same as your existing app:
     # dropdowns, cards, visualization, citation explorer, etc.
