@@ -84,6 +84,7 @@ def load_database():
         # --- New logic: load directly from CSVs if they exist ---
         if os.path.exists(NODES_CSV_PATH) and os.path.exists(EDGES_CSV_PATH):
             nodes_df = pd.read_csv(NODES_CSV_PATH)
+            st.write("🧩 Node columns:", list(nodes_df.columns))
             edges_df = pd.read_csv(EDGES_CSV_PATH)
 
             # --- Normalize column names to match the app's expected format ---
