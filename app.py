@@ -52,7 +52,15 @@ load_css('style.css')
 def load_database():
     """Load data from database or CSV files"""
     try:
-        if os.path.exists(DATABASE_PATH):
+                # --- New logic: load directly from CSVs if they exist ---
+        if os.path.exists(NODES_CSV_PATH) and os.path.exists(EDGES_CSV_PATH):
+            nodes_df = pd.read_csv(NODES_CSV_PATH)
+            edges_df = pd.read_csv(EDGES_CSV_PATH)
+            st.success("✅ Loaded nodes and edges from CSV files.")
+            summary_df = pd.DataFrame()  # placeholder for now
+            return nodes_df, edges_df, summary_df
+
+        elif os.path.exists(DATABASE_PATH):
             conn = sqlite3.connect(DATABASE_PATH)
             nodes_df = pd.read_sql('SELECT * FROM nodes', conn)
             edges_df = pd.read_sql('SELECT * FROM edges', conn)
