@@ -1,4 +1,4 @@
-# Research Impact Dashboard (Adapted for new CSV structure)
+# Research Impact Dashboard (Final working version for new CSV data)
 
 import streamlit as st
 import pandas as pd
@@ -96,6 +96,89 @@ def build_summary_from_nodes(nodes_df):
         return pd.DataFrame()
 
 
+# --- Visualization Utilities ---
+def get_node_positions(network_nodes, network_id):
+    """Generate random 2D positions for each node based on node type."""
+    node_positions = {}
+    np.random.seed(42 + int(str(network_id).encode().hex(), 16) % 1000)
+
+    for _, node in network_nodes.iterrows():
+        x = np.random.uniform(-5, 5)
+        y = np.random.uniform(-3, 3)
+        node_positions[node["node_id"]] = (x, y)
+    return node_positions
+
+
+def create_edge_trace(edges, node_positions):
+    """Create Plotly traces for edges."""
+    edge_x, edge_y = [], []
+    for _, edge in edges.iterrows():
+        src, tgt = edge["source_id"], edge["target_id"]
+        if src in node_positions and tgt in node_positions:
+            x0, y0 = node_positions[src]
+            x1, y1 = node_positions[tgt]
+            edge_x += [x0, x1, None]
+            edge_y += [y0, y1, None]
+
+    return go.Scatter(
+        x=edge_x,
+        y=edge_y,
+        line=dict(width=1, color="rgba(160,174,192,0.5)"),
+        hoverinfo="none",
+        mode="lines"
+    )
+
+
+def create_node_trace(nodes, node_positions):
+    """Create Plotly traces for nodes."""
+    node_x, node_y = [], []
+    texts = []
+    for _, node in nodes.iterrows():
+        node_id = node["node_id"]
+        if node_id in node_positions:
+            x, y = node_positions[node_id]
+            node_x.append(x)
+            node_y.append(y)
+            texts.append(node.get("title", node_id))
+
+    return go.Scatter(
+        x=node_x,
+        y=node_y,
+        mode="markers",
+        hoverinfo="text",
+        text=texts,
+        marker=dict(size=10, color="#4299e1", line=dict(width=1, color="#e2e8f0"))
+    )
+
+
+def create_network_visualization(nodes_df, edges_df, network_id, grant_id=None, treatment_name=None):
+    """Build a minimal 2D network visualization using Plotly."""
+    # Filter network subset
+    network_nodes = nodes_df[nodes_df["network_id"] == network_id]
+    network_edges = edges_df  # assume already single-network dataset
+
+    if network_nodes.empty or network_edges.empty:
+        raise ValueError("No nodes or edges for this network.")
+
+    node_positions = get_node_positions(network_nodes, network_id)
+    edge_trace = create_edge_trace(network_edges, node_positions)
+    node_trace = create_node_trace(network_nodes, node_positions)
+
+    fig = go.Figure(data=[edge_trace, node_trace])
+    fig.update_layout(
+        title=f"Research Impact Network — {grant_id or ''} → {treatment_name or ''}",
+        showlegend=False,
+        hovermode="closest",
+        margin=dict(b=20, l=20, r=20, t=40),
+        xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+        paper_bgcolor="rgba(14,17,23,1)",
+        plot_bgcolor="rgba(14,17,23,1)",
+        font=dict(color="#e2e8f0")
+    )
+    return fig
+
+
 # --- Data Loading ---
 @st.cache_data(ttl=CACHE_TTL)
 def load_database():
@@ -151,7 +234,7 @@ def load_database():
 
     except Exception as e:
         st.error(f"Error loading data: {e}")
-        return create_sample_data()
+        return pd.DataFrame(), pd.DataFrame(), pd.DataFrame()
 
 
 # --- Main App ---
@@ -185,8 +268,6 @@ def main():
             summary_df[col] = summary_df[col].astype(str).str.strip()
 
     st.markdown("## Select the Citation Network")
-
-    # --- Simple selector for single-network datasets ---
     st.markdown("### Available Research Networks")
 
     selected_network = summary_df.iloc[0]["network_id"]
@@ -206,24 +287,24 @@ def main():
     if st.button("Analyze Citation Network", use_container_width=True):
         st.session_state.selected_network = selected_network
         st.success(f"Selected network: {selected_summary['disease']} → {selected_summary['treatment_name']}")
-        # (Here you can later re-enable create_network_visualization() once data structure stabilizes)
-    # --- Visualization Section ---
-    st.markdown("### 🕸️ Research Network Visualization")
-    with st.spinner("Creating network visualization..."):
-        try:
-            fig = create_network_visualization(
-                nodes_df,
-                edges_df,
-                selected_network,
-                grant_id=selected_summary["grant_id"],
-                treatment_name=selected_summary["treatment_name"]
-            )
-            if fig and fig.data:
-                st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.warning("No nodes or edges to visualize.")
-        except Exception as e:
-            st.error(f"Error generating visualization: {e}")
+
+        # --- Visualization Section ---
+        st.markdown("### 🕸️ Research Network Visualization")
+        with st.spinner("Creating network visualization..."):
+            try:
+                fig = create_network_visualization(
+                    nodes_df,
+                    edges_df,
+                    selected_network,
+                    grant_id=selected_summary["grant_id"],
+                    treatment_name=selected_summary["treatment_name"]
+                )
+                if fig and fig.data:
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.warning("No nodes or edges to visualize.")
+            except Exception as e:
+                st.error(f"Error generating visualization: {e}")
 
 
 if __name__ == "__main__":
