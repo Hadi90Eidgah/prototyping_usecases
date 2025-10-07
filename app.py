@@ -49,6 +49,35 @@ load_css('style.css')
 
 # --- Data Loading ---
 @st.cache_data(ttl=CACHE_TTL)
+def build_summary_from_nodes(nodes_df):
+    """Generate a summary DataFrame from nodes when no summary CSV exists"""
+    try:
+        grants = nodes_df[nodes_df['node_type'] == 'grant'].copy()
+
+        summary_df = grants[['network_id', 'disease', 'treatment_name', 'grant_id',
+                             'funding_amount', 'year', 'approval_year']].rename(
+            columns={'year': 'grant_year'}
+        )
+
+        summary_df['total_publications'] = (
+            nodes_df[nodes_df['node_type'] == 'publication']
+            .groupby('network_id')['node_id']
+            .count()
+            .reindex(summary_df['network_id'])
+            .fillna(0)
+            .astype(int)
+            .values
+        )
+
+        summary_df['research_duration'] = (
+            summary_df['approval_year'] - summary_df['grant_year']
+        )
+
+        return summary_df
+    except Exception as e:
+        st.error(f"Error building summary: {e}")
+        return pd.DataFrame()
+
 def load_database():
     """Load data from database or CSV files"""
     try:
